@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import axios, { AxiosResponse } from 'axios';
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const callback = async () => {
@@ -35,10 +36,18 @@ export async function GET(request: NextRequest) {
 
       const res = NextResponse.redirect(new URL("/", request.nextUrl.protocol + request.headers.get("host")));
       res.cookies.set("accessToken", (token as AxiosResponse<any, any>)?.data?.access_token, {
-        maxAge: 600
+        maxAge: 300,
+        httpOnly: true,
+        secure: true
       });
+
       return res;
     }
+  }
+
+  if (cookies().get("accessToken")) {
+    console.log("already has token");
+    return;
   }
 
   return callback();
