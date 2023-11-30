@@ -1,16 +1,26 @@
+import { servertoken, validate } from "@/validate";
 import axios, { AxiosResponse } from "axios";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export default async function Search({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined }}) {
+  const validated = await validate(cookies().get("accessToken")?.value as string);
+  if (!validated) {
+    redirect("/auth");
+    return;
+  }
+
+  const token = await servertoken();
+
   const getUser = async (username: string) => {
     "use server";
-    const searchQuery = await axios.get(process.env.KEYCLOAK_BASE as string + "users", {
+    const searchQuery = await axios.get(`${process.env.KEYCLOAK_BASEURL}admin/realms/${process.env.KEYCLOAK_REALM}/users`, {
       params: {
         username: username,
         exact: true
       },
       headers: {
-        "Authorization": "Bearer " + cookies().get("accessToken"),
+        "Authorization": "Bearer " + token,
         "Accept": "application/json"
       }
     }).catch((error) => {
@@ -32,6 +42,8 @@ export default async function Search({ searchParams }: { searchParams: { [key: s
 
   const updateUser = async () => {
     "use server";
+
+
   }
 
   if (!searchParams?.username) {

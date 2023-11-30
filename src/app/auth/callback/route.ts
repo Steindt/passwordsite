@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     "use server";
 
     const redirect_uri = () => {
-      const url = process.env.AUTH_REDIRECT;
+      const url = process.env.KEYCLOAK_REDIRECT;
       url?.replaceAll(':', "%3A").replaceAll('/', "%2F");
       return url;
     }
@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
       console.log("Authentication callback return with null code");
       redirect("auth");
     } else {
-      const token = await axios.post(process.env.AUTH_TOKEN as string, {
+      const token = await axios.post(`${process.env.KEYCLOAK_BASEURL}realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`, {
         grant_type: "authorization_code",
         code: code,
         redirect_uri: redirect_uri(),
-        client_id: process.env.AUTH_CLIENT_ID as string
+        client_id: process.env.KEYCLOAK_CLIENT as string
       }, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -45,10 +45,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  if (cookies().get("accessToken")) {
-    console.log("already has token");
-    return;
-  }
+  // if (cookies().get("accessToken")) {
+  //   console.log("already has token");
+  //   redirect("/");
+  //   return;
+  // }
 
   return callback();
 }
