@@ -3,14 +3,13 @@ import { redirect } from "next/navigation";
 import axios, { AxiosResponse } from 'axios';
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const callback = async () => {
     "use server";
 
     const redirect_uri = () => {
-      const url = process.env.KEYCLOAK_REDIRECT;
+      const url = process.env.BASEURL + "auth/callback";
       url?.replaceAll(':', "%3A").replaceAll('/', "%2F");
       return url;
     }
@@ -24,7 +23,7 @@ export async function GET(request: NextRequest) {
         grant_type: "authorization_code",
         code: code,
         redirect_uri: redirect_uri(),
-        client_id: process.env.KEYCLOAK_CLIENT as string
+        client_id: process.env.KEYCLOAK_CLIENT as string,
       }, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -44,12 +43,6 @@ export async function GET(request: NextRequest) {
       return res;
     }
   }
-
-  // if (cookies().get("accessToken")) {
-  //   console.log("already has token");
-  //   redirect("/");
-  //   return;
-  // }
 
   return callback();
 }

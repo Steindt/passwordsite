@@ -5,13 +5,13 @@ export async function validate(client_token: string) {
 
   const response = await axios.get(`${process.env.KEYCLOAK_BASEURL}realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/userinfo`, {
     headers: {
-      "Authorization": client_token,
+      "Authorization": "Bearer " + client_token,
     }
   }).catch((error) => {
+    console.log(error.response.status);
+    console.log(error.response.headers);
     console.log(error.response.data);
   });
-
-  console.log((response as AxiosResponse<any, any>)?.data);
 
   if ((response as AxiosResponse<any, any>)?.status == 200) {
     return true;
