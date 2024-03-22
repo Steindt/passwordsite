@@ -1,3 +1,4 @@
+import Textfield from "@/components/Textfield";
 import { addUser } from "@/db";
 import { userinfo } from "@/types";
 import { servertoken, validate } from "@/validate";
@@ -70,7 +71,6 @@ export default async function Search({ searchParams }: { searchParams: { [key: s
   
   const userdata: userinfo = await getUser(searchParams?.username as string);
 
-
   if (!userdata.username) {
     return failed;
   }
@@ -89,7 +89,7 @@ export default async function Search({ searchParams }: { searchParams: { [key: s
 
     // Updates user's email to the given email
     await axios.put(`${process.env.KEYCLOAK_BASEURL}admin/realms/${process.env.KEYCLOAK_REALM}/users/${userdata.id}`, {
-      email: formData.get("email")
+      email: formData.get("result")
     }, {
       headers: {
         "Authorization": "Bearer " + token
@@ -101,6 +101,7 @@ export default async function Search({ searchParams }: { searchParams: { [key: s
     // Updates requiredActions on user's account to force password reset
     await axios.put(`${process.env.KEYCLOAK_BASEURL}admin/realms/${process.env.KEYCLOAK_REALM}/users/${userdata.id}`, {
       id: userdata.id,
+      emailVerified: false,
       requiredActions: ["UPDATE_PASSWORD"]
     }, {
       headers: {
@@ -126,7 +127,21 @@ export default async function Search({ searchParams }: { searchParams: { [key: s
       redirect("/");
     });
 
-    addUser(userdata);
+
+    // setTimeout(async () => {
+    //   // Updates user's email back to previous user email
+    //   await axios.put(`${process.env.KEYCLOAK_BASEURL}admin/realms/${process.env.KEYCLOAK_REALM}/users/${userdata.id}`, {
+    //     email: userdata.email
+    //   }, {
+    //     headers: {
+    //       "Authorization": "Bearer " + token
+    //     }
+    //   }).catch((error) => {
+    //     console.error("Couldn't update user back to original email");
+    //   });
+    // }, 24 * 60 * 60 * 1000);
+
+    // addUser(userdata);
 
     redirect("/");
   }
@@ -145,10 +160,11 @@ export default async function Search({ searchParams }: { searchParams: { [key: s
       <p>Aktiverad: {userdata.enabled ? "true" : "false"}</p>
       <p>Verifierad: {userdata.emailVerified ? "true" : "false"}</p>
       <p>Skapad: {getTimeString()}</p>
-      <form action={updateUser}>
+      <Textfield buttonText={"Reset password"} placeholder={"Email to send to"} func={updateUser}/>
+      {/* <form action={updateUser}>
         <input type="email" name="email" placeholder="Email to send to"></input>
         <button type="submit">Reset password</button>
-      </form>
+      </form> */}
       <form action={back}>
         <button type="submit">Back</button>
       </form>
